@@ -339,6 +339,8 @@ const server = new ws.Server({
         // usuwamy go z arraya players
         room.players = room.players.filter((s => s !== socket));
 
+	if(room.players.length == 0) return delete rooms[socket.roomid]; // wszyscy wyszli, usuwamy pokoj
+
         // wysyłamy do wszystkich wiadomość
         room["latestChat"] = socket["name"] + " wychodzi."
         room.players.forEach(s => s.send(JSON.stringify({

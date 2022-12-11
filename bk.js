@@ -42,38 +42,7 @@ function plsNoXSS(text) {
 const app = express();
 app.listen(80, () => {
     console.log('wyscigi_pociagow');
-});
-
-
-
-app.get('/api/join_room', (req,res) => {
-    let roomName = req.originalUrl.split("?room=")[1].toUpperCase()
-    let ok = true;
-    let message = "";
-
-    if(roomExists(roomName) == false) {
-        ok = false;
-        message = "podałeś zły kod lub ten pokój nie istnieje"
-    }
-    
-    res.send({
-        "ok": ok,
-        "message": message
-    })
-});
-
-app.get('/api/create_room', (req,res) => {
-    let roomName = randomCharset();
-
-    if(roomExists(roomName) == true) {
-        roomName = randomCharset();
-    }
-    
-    res.send({
-        "room_id": roomName
-    })
-});
-
+});    
 
 app.get('/', (req,res) => {
     res.redirect("index.html");
@@ -101,16 +70,29 @@ const server = new ws.Server({
                 let name = m.name;
                 let id = m["join_id"];
 
-                socket["name"] = plsNoXSS(name);
-                socket["roomid"] = id;
-
                 console.log(name, id);
-                
-                if(!rooms[id]) {
-                    rooms[id] = {}
-                    rooms[id]["players"] = []
-                    rooms[id]["code"] = id;
+               
+		// czy podano pokoj?
+                if(!id) {
+			// nie, tworzymy pokoj
+			id = randomCharset();
+
+			if(roomExists(id)) {
+				id = randomCharset();
+			}
+	
+			rooms[id] = {};
+			rooms[id].players = [];
+			rooms[id].code = id;
                 };
+		// podano pokoj, czy pokoj istnieje?
+		if(!rooms[id]) {
+			// nie
+			return socket.send(JSON.stringify({
+				"type": "alertMessage",
+				"value": "podałeś zły kod lub ten pokój nie istnieje",
+			}));
+		}
                 
                 // czy w pokoju jest gracz o takim samym nicku?
 		let e = false;
@@ -119,14 +101,14 @@ const server = new ws.Server({
 		});
 		
 		if (e) {
-			socket["name"] = "";
-			socket["roomid"] = "";
-
                    	return socket.send(JSON.stringify({
                         	"type": "alertMessage",
                        		"value": "w grze jest już gracz o takiej nazwie."
                    	}));
 		}
+
+		socket["name"] = plsNoXSS(name);
+		socket["roomid"] = id;
 
                 // czy gra w pokoju już się zaczęła?
                 if(rooms[id].started !== true) {

@@ -14,27 +14,8 @@ function sA(name) {
 // funkcje: tworzenie gry i dołączanie
 
 function gameJoin() {
-    s("#join_prompt").style.display = "none";
-    fetch("/api/join_room?room=" + s("#gameid_prompt").value).then(r => {
-        r.json().then(j => {
-            if(j.ok == true) {
-                game();
-            } else {
-                s("#join_prompt").style.display = "block";
-                alert(j.message);
-            };
-        })
-    })
-};
-
-function gameCreate() {
-    s("#join_prompt").style.display = "none";
-    fetch("/api/create_room").then(r => {
-        r.json().then(j => {
-            s("#gameid_prompt").value = j["room_id"];
-            game();
-        })
-    })
+	s("#join_prompt").style.display = "none";
+	game();
 };
 
 // skarpetka
